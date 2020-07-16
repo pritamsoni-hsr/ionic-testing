@@ -1,0 +1,7 @@
+{
+  "name": "kittensink",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react"
+}
