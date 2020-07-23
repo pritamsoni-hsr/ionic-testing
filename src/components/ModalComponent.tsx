@@ -3,9 +3,12 @@ import * as React from 'react';
 import { useHistory } from 'react-router';
 
 import {
-    IonBackButton, IonButton, IonButtons, IonContent, IonFab, IonFabButton, IonHeader, IonIcon,
-    IonLabel, IonModal, IonPage, IonSlide, IonSlides, IonTitle, IonToolbar
+    IonButton, IonButtons, IonContent, IonFab, IonFabButton, IonHeader, IonIcon, IonModal, IonTitle,
+    IonToolbar
 } from '@ionic/react';
+
+import { toDark, toLight } from '../utils/native';
+import Slides from './SlidesComponent';
 
 export interface IModalComponentProps {
   setShowModal: any;
@@ -29,25 +32,33 @@ function ModalContent(props: IModalComponentProps) {
         veniam consectetur blanditiis facilis vel aperiam! Quibusdam sint
         exercitationem illum eligendi quod ipsum totam dignissimos sunt,
         voluptatibus omnis? Ab, velit?
+        <Slides />
       </IonContent>
     </>
   );
 }
-
-export default function ModalComponent() {
+interface Props {
+  router: HTMLIonRouterOutletElement | null;
+}
+const ModalComponent: React.FC<Props> = ({ router }) => {
   let [showModal, setShowModal] = React.useState(false);
   let h = useHistory();
-  let ref = React.createRef<any>();
-
+  let setModal = () => {
+    return (args: boolean) => {
+      if (args) toLight();
+      else toDark();
+      setShowModal(args);
+    };
+  };
   return (
     <div>
       <IonModal
         swipeToClose={true}
         isOpen={showModal}
-        onDidDismiss={() => setShowModal(false)}
-        presentingElement={ref.current}
+        onDidDismiss={() => setModal()(false)}
+        presentingElement={router || undefined}
       >
-        <ModalContent setShowModal={setShowModal} />
+        <ModalContent setShowModal={setModal()} />
       </IonModal>
       <IonFab vertical="bottom" horizontal="start" slot="fixed">
         <IonFabButton onClick={() => h.push("/page", { direction: "forward" })}>
@@ -60,65 +71,58 @@ export default function ModalComponent() {
         slot="fixed"
         activated={showModal}
       >
-        <IonFabButton onClick={() => setShowModal(true)}>
+        <IonFabButton onClick={() => setModal()(true)}>
           <IonIcon icon={shareOutline} />
         </IonFabButton>
       </IonFab>
     </div>
   );
-}
-export const NavPage = () => {
-  return (
-    <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonButtons slot="start">
-            <IonBackButton />
-          </IonButtons>
-          <IonTitle>Test Page</IonTitle>
-        </IonToolbar>
-      </IonHeader>
-
-      <IonContent className="ion-padding">
-        <IonLabel>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Libero magni
-          veniam consectetur blanditiis facilis vel aperiam! Quibusdam sint
-          exercitationem illum eligendi quod ipsum totam dignissimos sunt,
-          voluptatibus omnis? Ab, velit?
-        </IonLabel>
-        <Slides />
-      </IonContent>
-    </IonPage>
-  );
 };
+export default ModalComponent;
 
-export const Slides = () => {
-  let [state, setstate] = React.useState<number[]>([]);
-  let ref = React.useRef<HTMLIonSlidesElement>(null);
-  React.useEffect(() => {
-    let a = setTimeout(() => {
-      setstate([0, 1, 2, 3, 4]);
-      // ref.current?.update();
-    }, 3000);
-    return ()=>{
-      clearTimeout(a)
-    }
-  }, []);
+const HalfModalContent = (props: IModalComponentProps) => (
+  <>
+    <IonHeader>
+      <IonToolbar>
+        <IonButtons slot="start">
+          <IonButton onClick={() => props.setShowModal(false)}>
+            <IonIcon icon={closeOutline} slot="icon-only" />
+          </IonButton>
+        </IonButtons>
+        <IonTitle>Half Modal</IonTitle>
+      </IonToolbar>
+    </IonHeader>
+    <IonContent>
+      Lorem ipsum dolor, sit amet consectetur adipisicing elit. Iste impedit
+      cumque amet, temporibus doloribus, magnam itaque sequi neque, architecto
+      officiis dolor odit! Libero rem nesciunt debitis rerum dignissimos quam
+      minus.
+    </IonContent>
+  </>
+);
 
-  // React.useEffect(() => {
-  //   setTimeout(() => {
-  //     ref.current?.update();
-  //   }, 2000);
-  // }, []);
-
-  console.log(state);
+export const HalfModal = () => {
+  let [showModal, setShowModal] = React.useState(false);
   return (
-    <IonSlides ref={ref} options={{ slidesPerView: 4 }}>
-      {state.length
-        ? state.map((e, idx) => <IonSlide key={idx}> idx </IonSlide>)
-        : [0, 0, 0, 0].map((e, idx) => (
-            <IonSlide key={idx}> Loading ... </IonSlide>
-          ))}
-    </IonSlides>
+    <div>
+      <IonModal
+        swipeToClose={true}
+        cssClass="half-modal"
+        isOpen={showModal}
+        onDidDismiss={() => setShowModal(false)}
+      >
+        <HalfModalContent setShowModal={setShowModal} />
+      </IonModal>
+      <IonFab
+        vertical="center"
+        horizontal="end"
+        slot="fixed"
+        activated={showModal}
+      >
+        <IonFabButton onClick={() => setShowModal(true)}>
+          <IonIcon icon={shareOutline} />
+        </IonFabButton>
+      </IonFab>
+    </div>
   );
 };
